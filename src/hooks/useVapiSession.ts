@@ -54,8 +54,20 @@ export function useVapiSession() {
         const vapi = vapiRef.current;
 
         vapi.start({
-          model: config.model,
-          voice: config.voice,
+          model: {
+            provider: 'google',
+            model: 'gemini-1.5-flash',
+            messages: [
+              {
+                role: 'system',
+                content: config.systemPrompt || 'You are an expert AI interviewer. Ask insightful questions and evaluate answers professionally.',
+              },
+            ],
+          },
+          voice: {
+            provider: 'playht',
+            voiceId: 'jennifer',
+          },
           firstMessage: config.firstMessage,
         });
 
@@ -82,8 +94,11 @@ export function useVapiSession() {
         });
 
         vapi.on('error', (err: any) => {
-          console.error('Vapi error:', err);
-          setStatus('idle');
+          console.warn('Vapi error, falling back to browser simulation:', err);
+          // Clean up Vapi and fall back to Web Speech API
+          try { vapiRef.current?.stop(); } catch (_) {}
+          vapiRef.current = null;
+          setupSimulation(config);
         });
       } catch (err) {
         console.error('Failed to load Vapi Web SDK, falling back to simulation:', err);
