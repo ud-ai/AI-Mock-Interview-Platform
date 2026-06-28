@@ -1,4 +1,4 @@
-import { StateGraph } from '@langchain/langgraph';
+import { StateGraph, START, END } from '@langchain/langgraph';
 import { InterviewStateAnnotation } from './state';
 import {
   sessionInitNode,
@@ -29,6 +29,7 @@ const workflow = new StateGraph(InterviewStateAnnotation)
   .addNode('feedback_generator', feedbackGeneratorNode as any)
 
   // Define edges
+  .addEdge(START, 'session_init')
   .addEdge('session_init', 'opening_statement')
   .addEdge('opening_statement', 'question_generator')
 
@@ -51,8 +52,9 @@ const workflow = new StateGraph(InterviewStateAnnotation)
     closing_statement: 'closing_statement',
   })
 
-  .addEdge('question_generator', 'coverage_checker')
-  .addEdge('closing_statement', 'feedback_generator');
+  .addEdge('question_generator', 'answer_evaluator')
+  .addEdge('closing_statement', 'feedback_generator')
+  .addEdge('feedback_generator', END);
 
 // Compile the workflow
 export const graph = workflow.compile();
@@ -162,5 +164,5 @@ export async function processUserAnswer(
  */
 export async function generateSessionFeedback(currentState: any): Promise<any> {
   const result = await feedbackGeneratorNode(currentState);
-  return result.graphState;
+  return (result as any).feedbackReport;
 }

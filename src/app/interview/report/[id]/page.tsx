@@ -1,18 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { AuthGuard } from '@/components/layout/AuthGuard';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, Star, CheckCircle, AlertTriangle, Clock, Share2, Download } from 'lucide-react';
 
 interface ReportPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function FeedbackReportPage({ params }: ReportPageProps) {
+  const resolvedParams = use(params);
+  const sessionId = resolvedParams.id;
+
   const { token } = useAuth();
   const [reportData, setReportData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +23,7 @@ export default function FeedbackReportPage({ params }: ReportPageProps) {
   const fetchReport = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/interview/sessions/${params.id}/report`, {
+      const res = await fetch(`/api/interview/sessions/${sessionId}/report`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -267,7 +267,7 @@ export async function closingStatementNode(state: InterviewState): Promise<Parti
 }
 
 // 10. Feedback Generator Node
-export async function feedbackGeneratorNode(state: InterviewState): Promise<Partial<InterviewState>> {
+export async function feedbackGeneratorNode(state: InterviewState): Promise<any> {
   const transcriptStr = formatTranscript(state.transcript);
   const scoresStr = JSON.stringify(state.answerScores, null, 2);
 

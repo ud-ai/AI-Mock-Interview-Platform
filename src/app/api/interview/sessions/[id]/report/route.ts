@@ -4,7 +4,7 @@ import { authenticateRequest } from '@/lib/auth/middleware';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userPayload = await authenticateRequest(req);
@@ -12,7 +12,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: sessionId } = params;
+    const { id: sessionId } = await params;
 
     // Verify session belongs to the user
     const session = await prisma.session.findFirst({

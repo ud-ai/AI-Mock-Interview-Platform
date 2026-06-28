@@ -4,14 +4,14 @@ import { useInterviewStore } from '@/store/interviewStore';
 import clsx from 'clsx';
 
 export function StatusBanner() {
-  const { status, interviewerPersona } = useInterviewStore();
+  const { status } = useInterviewStore();
 
   const getStatusText = () => {
     switch (status) {
       case 'connecting':
         return 'Connecting to audio stream...';
       case 'interviewer-speaking':
-        return `Interviewer ${interviewerPersona?.name || 'Sarah'} is speaking...`;
+        return 'Interviewer is speaking...';
       case 'candidate-turn':
         return 'Your turn — Speak now';
       case 'processing':
