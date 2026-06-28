@@ -11,7 +11,7 @@ import clsx from 'clsx';
 
 export default function VoiceSessionPage() {
   const router = useRouter();
-  const { currentSessionId, vapiCallConfig, transcript } = useInterviewStore();
+  const { currentSessionId, vapiCallConfig, transcript, openingMessage } = useInterviewStore();
   const { endSession } = useInterviewSession();
   const { status, isMuted, isSimulated, startCall, endCall, toggleMute } = useVapiSession();
 
@@ -60,10 +60,11 @@ export default function VoiceSessionPage() {
     }
   };
 
-  // Extract latest interviewer speech prompt
-  const latestPrompt = transcript
+  // Extract latest interviewer speech prompt — use stored openingMessage as immediate fallback
+  const latestAssistantMessage = transcript
     .filter((t) => t.role === 'assistant')
-    .slice(-1)[0]?.content || "Preparing your first question...";
+    .slice(-1)[0]?.content;
+  const latestPrompt = latestAssistantMessage || openingMessage || 'Preparing your first question...';
 
   return (
     <AuthGuard>

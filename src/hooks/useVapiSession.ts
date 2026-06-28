@@ -45,6 +45,15 @@ export function useVapiSession() {
     if (vapiKey && vapiKey !== 'your-vapi-public-key') {
       setIsSimulated(false);
       setStatus('connecting');
+
+      // Safety timeout: if Vapi doesn't connect in 5s, fall back to simulation
+      const vapiTimeout = setTimeout(() => {
+        console.warn('Vapi connection timeout — falling back to browser simulation');
+        try { vapiRef.current?.stop(); } catch (_) {}
+        vapiRef.current = null;
+        setupSimulation(config);
+      }, 5000);
+
       try {
         const Vapi = (await import('@vapi-ai/web')).default;
         if (!vapiRef.current) {
@@ -53,14 +62,14 @@ export function useVapiSession() {
 
         const vapi = vapiRef.current;
 
-        vapi.start({
+        vapi.start(config.assistantId || {
           model: {
             provider: 'google',
             model: 'gemini-1.5-flash',
             messages: [
               {
                 role: 'system',
-                content: config.systemPrompt || 'You are an expert AI interviewer. Ask insightful questions and evaluate answers professionally.',
+                content: 'You are an expert AI interviewer. Ask insightful questions and evaluate answers professionally.',
               },
             ],
           },
@@ -72,6 +81,7 @@ export function useVapiSession() {
         });
 
         vapi.on('call-start', () => {
+          clearTimeout(vapiTimeout);
           setStatus('interviewer-speaking');
           addTranscriptTurn({
             role: 'assistant',
@@ -94,13 +104,14 @@ export function useVapiSession() {
         });
 
         vapi.on('error', (err: any) => {
+          clearTimeout(vapiTimeout);
           console.warn('Vapi error, falling back to browser simulation:', err);
-          // Clean up Vapi and fall back to Web Speech API
           try { vapiRef.current?.stop(); } catch (_) {}
           vapiRef.current = null;
           setupSimulation(config);
         });
       } catch (err) {
+        clearTimeout(vapiTimeout);
         console.error('Failed to load Vapi Web SDK, falling back to simulation:', err);
         setupSimulation(config);
       }

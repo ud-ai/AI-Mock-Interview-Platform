@@ -9,6 +9,7 @@ export function useInterviewSession() {
     setCurrentSessionId,
     setVapiCallConfig,
     setOpeningMessage,
+    setTranscript,
     resetSession,
   } = useInterviewStore();
 
@@ -39,6 +40,15 @@ export function useInterviewSession() {
       setCurrentSessionId(data.sessionId);
       setVapiCallConfig(data.vapiCallConfig);
       setOpeningMessage(data.openingMessage);
+
+      // Pre-populate transcript with opening message so it shows immediately
+      if (data.openingMessage) {
+        setTranscript([{
+          role: 'assistant',
+          content: data.openingMessage,
+          timestamp: new Date().toISOString(),
+        }]);
+      }
 
       return { sessionId: data.sessionId, config: data.vapiCallConfig };
     } catch (err: any) {
