@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  passwordHash    String
+  jobRole         String
+  experienceLevel String
+  createdAt       DateTime  @default(now())
+  sessions        Session[]
+}
+
+model Session {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  interviewType   String
+  jobRole         String
+  status          String    @default("active")  // active | completed | abandoned
+  startedAt       DateTime  @default(now())
+  endedAt         DateTime?
+  durationSeconds Int?
+  transcript      Json      // Full TranscriptTurn[]
+  graphState      Json      // Final LangGraph state snapshot
+  feedbackReport  FeedbackReport?
+  
+  @@index([userId])
+}
+
+model FeedbackReport {
+  id                String   @id @default(cuid())
+  sessionId         String   @unique
+  session           Session  @relation(fields: [sessionId], references: [id])
+  overallScore      Float
+  communicationScore Float
+  technicalScore    Float?
+  structureScore    Float
+  confidenceScore   Float
+  strengths         String[]
+  improvements      String[]
+  detailedFeedback  Json     // Per-question breakdown
+  hiringRecommendation String  // "strong yes" | "yes" | "maybe" | "no"
+  generatedAt       DateTime @default(now())
+}
